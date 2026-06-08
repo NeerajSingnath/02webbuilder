@@ -1,7 +1,13 @@
 import express from 'express';
-const app = express();
+import dotenv from 'dotenv';
+import dns from 'node:dns';
+import dbConnect from './config/db.js';
 
-const PORT = process.env.PORT || 3000;
+dotenv.config();
+dns.setServers(['1.1.1.1', '8.8.8.8']);
+
+const app = express();
+const PORT = process.env.PORT;
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -9,4 +15,5 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  dbConnect();
 });
