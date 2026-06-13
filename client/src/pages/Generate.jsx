@@ -66,13 +66,21 @@ const Generate = () => {
           </p>
         </motion.div>
         <div className="mb-14">
-          <h1 className="text-xl font-semibold mb-2">Describe your website</h1>
+          <h1 className="text-xl font-semibold mb-2">
+            {!loading
+              ? 'Describe your website'
+              : 'Please wait while we generate your website'}
+          </h1>
           <div className="relative">
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               disabled={loading}
-              placeholder={loading ? "Generating your website, please wait..." : "Describe your website in detail..."}
+              placeholder={
+                loading
+                  ? 'Generating your website, please wait...'
+                  : 'Describe your website in detail...'
+              }
               className="w-full h-56 p-6 rounded-3xl bg-black/60 border border-white/30 outline-none resize-none text-sm leading-relaxed focus:ring-2 focus:ring-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
             ></textarea>
           </div>

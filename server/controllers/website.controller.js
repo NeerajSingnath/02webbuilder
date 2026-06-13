@@ -232,3 +232,144 @@ export const generateWebsite = async (req, res) => {
     return res.status(500).json({ message: 'Something went wrong' });
   }
 };
+
+//getting website by id
+export const getWebsiteBYId = async (req, res) => {
+  try {
+    // getting website id
+    const websiteId = req.params.id;
+
+    // getting website
+    const website = await Website.findOne({
+      _id: websiteId,
+      user: req.user._id,
+    });
+
+    // checking if website is valid
+    if (!website) {
+      return res.status(404).json({ message: 'Website not found' });
+    }
+
+    // sending website
+    return res.status(200).json(website);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: `Something went wrong ${error.message}` });
+  }
+};
+
+// getting all websites of user
+export const getAllWebsites = async (req, res) => {
+  try {
+    // getting user id
+    const userId = req.user.id;
+
+    // getting all websites
+    const websites = await Website.find({ user: userId });
+
+    // checking if websites are valid
+    if (!websites) {
+      return res.status(404).json({ message: 'Websites not found' });
+    }
+
+    // sending websites
+    return res.status(200).json(websites);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: `Something went wrong ${error.message}` });
+  }
+};
+
+export const changes = async (req, res) => {
+  try {
+    // getting website
+    const websiteId = req.params.id;
+
+    const website = await Website.findOne({
+      _id: websiteId,
+      user: req.user._id,
+    });
+    if (!website) {
+      return res.status(404).json({ message: 'Website not found' });
+    }
+
+    // getting prompt
+    const { prompt } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ message: 'Prompt is required' });
+    }
+    // getting user id
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    // checking if user is valid and has enough credits
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // checking if user has enough credits
+    if (user.credits < 25) {
+      return res.status(400).json({ message: 'Insufficient credits' });
+    }
+
+    const updatedPrompt = `
+UPDATE THIS HTML WEBSITE.
+
+CURRENT CODE:
+${website.latestCode}
+
+USER REQUEST:
+${prompt}
+
+RETURN RAW JSON ONLY:
+{
+  "message": "Short confirmation",
+  "code": "<UPDATED FULL HTML>"
+}
+`;
+
+    let raw = '';
+    let parsed = null;
+
+    // retry logic to extract json
+    let currentPrompt = updatedPrompt;
+    for (let i = 0; i < 3 && !parsed; i++) {
+      raw = await generateResponse(currentPrompt);
+      parsed = await extractJson(raw);
+
+      if (!parsed) {
+        currentPrompt =
+          updatedPrompt + '\n\nPlease provide the response in JSON format only';
+      }
+    }
+
+    website.conversation.push(
+      {
+        role: 'ai',
+        content: parsed?.message,
+      },
+      {
+        role: 'user',
+        content: prompt,
+      },
+    );
+
+    website.latestCode = parsed?.code;
+    await website.save();
+
+    user.credits -= 25;
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Website updated successfully',
+      code: parsed.code,
+      remainingCredits: user.credits,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: `Something went wrong ${error.message}` });
+  }
+};

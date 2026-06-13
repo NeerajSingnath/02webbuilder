@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import useGetCurrentUser from './hooks/useGetCurrentUser';
 import Dashboard from './pages/Dashboard';
+import Editor from './pages/Editor';
 import Generate from './pages/Generate';
 import Home from './pages/Home';
 export const serverUrl = 'http://localhost:3000';
@@ -22,6 +23,7 @@ const App = () => {
           path="*"
           element={<Navigate to={userData ? '/dashboard' : '/'} />}
         />
+        <Route path="/editor/:id" element={userData ? <Editor /> : <Home />} />
       </Routes>
     </BrowserRouter>
   );
