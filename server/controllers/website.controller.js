@@ -285,6 +285,7 @@ export const getAllWebsites = async (req, res) => {
 export const changes = async (req, res) => {
   try {
     // getting website
+    console.log('function called');
     const websiteId = req.params.id;
 
     const website = await Website.findOne({
@@ -347,12 +348,12 @@ RETURN RAW JSON ONLY:
 
     website.conversation.push(
       {
-        role: 'ai',
-        content: parsed?.message,
-      },
-      {
         role: 'user',
         content: prompt,
+      },
+      {
+        role: 'ai',
+        content: parsed?.message,
       },
     );
 
@@ -361,6 +362,7 @@ RETURN RAW JSON ONLY:
 
     user.credits -= 25;
     await user.save();
+    console.log('call completed');
 
     return res.status(200).json({
       message: 'Website updated successfully',

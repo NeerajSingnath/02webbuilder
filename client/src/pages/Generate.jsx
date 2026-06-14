@@ -1,13 +1,24 @@
 import axios from 'axios';
 import { ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { serverUrl } from '../App';
 
 const Generate = () => {
+  const PHASES = [
+    'Analyzing your idea…',
+    'Designing layout & structure…',
+    'Writing HTML & CSS…',
+    'Adding animations & interactions…',
+    'Final quality checks…',
+  ];
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [progress, setProgress] = useState(0);
+  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [error, setError] = useState('');
 
   const handleGenerateWebsite = async () => {
     if (!prompt.trim() || loading) return;
@@ -15,21 +26,53 @@ const Generate = () => {
     setPrompt('');
     setLoading(true);
     try {
-      console.log('clicked');
       const result = await axios.post(
         `${serverUrl}/api/website/generate`,
         { prompt: promptToSend },
         { withCredentials: true },
       );
-      console.log(result);
+      setProgress(100);
+      navigate('/editor/' + result.data.websiteId);
     } catch (error) {
-      console.log(error);
+      setError(error.response?.data?.message || 'Failed to generate website');
     } finally {
       setLoading(false);
     }
   };
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    if (!loading) {
+      setPhaseIndex(0);
+      setProgress(0);
+      return;
+    }
+
+    let value = 0;
+    let phase = 0;
+
+    const interval = setInterval(() => {
+      const increment =
+        value < 20
+          ? Math.random() * 1.5
+          : value < 60
+            ? Math.random() * 1.2
+            : Math.random() * 0.6;
+      value += increment;
+
+      if (value >= 93) value = 93;
+
+      phase = Math.min(
+        Math.floor((value / 100) * PHASES.length),
+        PHASES.length - 1,
+      );
+
+      setProgress(Math.floor(value));
+      setPhaseIndex(phase);
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, [loading]);
+
   return (
     <div className="min-h-screen bg-linear-to-br from-[#050505] via-[#0b0b0b] to-[#050505] text-white">
       <div className="sticky top-0 z-40 backdrop-blur-xl bg-black/50 border-b border-white/10">
@@ -96,6 +139,47 @@ const Generate = () => {
             </motion.button>
           </div>
         </div>
+
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="max-w-xl mx-auto mt-12"
+          >
+            <div className="flex justify-between mb-2 text-xs text-zinc-400">
+              <span>{PHASES[phaseIndex]}</span>
+              <span>{progress}%</span>
+            </div>
+
+            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-linear-to-r from-white to-zinc-300"
+                animate={{ width: `${progress}%` }}
+                transition={{ ease: 'easeOut', duration: 0.8 }}
+              />
+            </div>
+
+            <div className="text-center text-xs text-zinc-400 mt-4">
+              Estimated time remaining:{' '}
+              <span className="text-white font-medium">~8–12 minutes</span>
+            </div>
+          </motion.div>
+        )}
+        {error && !loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-md mx-auto mt-8 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-center"
+          >
+            <p className="text-sm text-red-400">{error}</p>
+            <button
+              onClick={() => setError('')}
+              className="mt-4 px-4 py-2 text-xs font-semibold bg-red-500/20 hover:bg-red-500/30 rounded-lg transition"
+            >
+              Try Again
+            </button>
+          </motion.div>
+        )}
       </div>
     </div>
   );
