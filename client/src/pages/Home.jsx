@@ -28,6 +28,7 @@ function Home() {
   ];
 
   const { userData } = useSelector((state) => state.user);
+  console.log(userData?.user);
 
   const [openProfile, setOpenProfile] = useState(false);
   const [openLogin, setOpenLogin] = useState(false);

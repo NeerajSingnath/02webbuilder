@@ -1,7 +1,8 @@
 export const getCurrentUser = async (req, res) => {
   try {
+    console.log('called');
     if (!req.user) {
-      return res.status(401).json({ message: 'Unauthorized, No user found' });
+      return res.status(401).json({ user: null });
     }
 
     return res.status(200).json({

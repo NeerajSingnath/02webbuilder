@@ -8,16 +8,20 @@ const isAuth = async (req, res, next) => {
     const token = req.cookies.token;
     // if token not found then return error
     if (!token) {
-      return res.status(401).json({ message: 'token not found' });
+      return res
+        .status(401)
+        .json({ message: 'Unauthorized: No token provided' });
     }
+    console.log('here');
 
     // verify token
-    const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     // find user
     const user = await User.findById(decoded.id);
     // if user not found then return error
     if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+      console.log('user not found');
+      return res.status(401).json({ user: null });
     }
 
     // attach user to request
@@ -26,6 +30,14 @@ const isAuth = async (req, res, next) => {
     // call next middleware
     next();
   } catch (error) {
+    if (
+      error.name === 'JsonWebTokenError' ||
+      error.name === 'TokenExpiredError'
+    ) {
+      return res
+        .status(401)
+        .json({ message: 'Unauthorized: Invalid or expired token' });
+    }
     // if error then return error
     return res.status(500).json({ message: 'Internal server error' });
   }
