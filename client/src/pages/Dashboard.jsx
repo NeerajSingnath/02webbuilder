@@ -13,6 +13,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
+  // const [isDeployed, setIsDeployed] = useState(false);
+
   const handleDeploy = async (id) => {
     try {
       const result = await axios.post(
@@ -22,15 +24,24 @@ const Dashboard = () => {
           withCredentials: true,
         },
       );
+
+      setAllWebsites((prev) =>
+        prev.map((w) =>
+          w._id === id
+            ? { ...w, deployed: true, deployUrl: result.data.url }
+            : w,
+        ),
+      );
       window.open(`${result.data.url}`, '_blank');
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to deploy');
     }
   };
 
-  const routeToSite = (id) => {
-    navigate(`/site/${id}`);
-    // window.open(`${serverUrl}/site/${id}`, '_blank');
+  const handleCopy = async (site) => {
+    await navigator.clipboard.writeText(site.deployUrl);
+    setCopiedId(site._id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
   useEffect(() => {
     const handleGetAllWebsites = async () => {
@@ -141,7 +152,7 @@ const Dashboard = () => {
                     ) : (
                       <motion.button
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => routeToSite(w._id)}
+                        onClick={() => handleCopy(w)}
                         className={`
                           mt-auto flex items-center justify-center gap-2
                           px-4 py-2 rounded-xl text-sm font-medium

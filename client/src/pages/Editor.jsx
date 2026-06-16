@@ -25,6 +25,7 @@ function Editor_() {
   const [showCode, setShowCode] = useState(false);
   const [showFullPreview, setShowFullPreview] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  // const [allWebsites, setAllWebsites] = useState(null);
   const thinkingSteps = [
     'Understanding your request…',
     'Planning layout changes…',
@@ -36,6 +37,23 @@ function Editor_() {
   const navigate = useNavigate();
 
   const iframeRef = useRef(null);
+
+  const handleDeploy = async () => {
+    try {
+      const result = await axios.post(
+        `${serverUrl}/api/website/deploy/${website._id}`,
+        {},
+        {
+          withCredentials: true,
+        },
+      );
+      setWebsite((prev) => ({ ...prev, deployed: true }));
+      console.log(website);
+      window.open(`${result.data.url}`, '_blank');
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to deploy');
+    }
+  };
 
   const handleUpdate = async () => {
     setUpdateLoading(true);
@@ -186,14 +204,16 @@ function Editor_() {
               {website.deployed ? (
                 <button
                   className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-linear-to-r from-indigo-500 to-purple-500 text-sm font-semibold hover:scale-105 transition"
-                  onClick={null}
+                  onClick={() => {
+                    window.open(website.deployUrl, '_blank');
+                  }}
                 >
                   <Rocket size={14} /> View Live
                 </button>
               ) : (
                 <button
                   className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-linear-to-r from-indigo-500 to-purple-500 text-sm font-semibold hover:scale-105 transition"
-                  onClick={null}
+                  onClick={() => handleDeploy(id)}
                 >
                   <Rocket size={14} /> Deploy
                 </button>

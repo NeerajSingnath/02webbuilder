@@ -4,14 +4,14 @@ import { useParams } from 'react-router-dom';
 import { serverUrl } from '../App';
 
 function LiveSite() {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [html, setHtml] = useState('');
   const [error, setError] = useState('');
   useEffect(() => {
     const handleGetWebsite = async () => {
       try {
         const result = await axios.get(
-          `${serverUrl}/api/website/getById/${id}`,
+          `${serverUrl}/api/website/getbySlug/${slug}`,
           {
             withCredentials: true,
           },
@@ -23,7 +23,7 @@ function LiveSite() {
       }
     };
     handleGetWebsite();
-  }, [id]);
+  }, [slug]);
 
   if (error) {
     return (

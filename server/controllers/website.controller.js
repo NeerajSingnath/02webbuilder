@@ -209,12 +209,12 @@ export const generateWebsite = async (req, res) => {
       latestCode: code,
       conversation: [
         {
-          role: 'ai',
-          content: message,
-        },
-        {
           role: 'user',
           content: prompt,
+        },
+        {
+          role: 'ai',
+          content: message,
         },
       ],
     });
@@ -369,6 +369,62 @@ RETURN RAW JSON ONLY:
       code: parsed.code,
       remainingCredits: user.credits,
     });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: `Something went wrong ${error.message}` });
+  }
+};
+
+export const deploy = async (req, res) => {
+  console.log('function called');
+  try {
+    const website = await Website.findOne({
+      _id: req.params.id,
+      user: req.user.id,
+    });
+    if (!website) {
+      return res.status(404).json({ message: 'Website not found' });
+    }
+
+    if (!website.slug) {
+      website.slug =
+        website.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
+          .slice(0, 60) + website._id.toString().slice(-5);
+    }
+    website.deployed = true;
+    const deployedUrl = `${process.env.FRONTEND_URL}/site/${website.slug}`;
+    website.deployUrl = deployedUrl;
+    await website.save();
+
+    return res.status(200).json({
+      message: 'Website deployed successfully',
+      url: deployedUrl,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: `Something went wrong during deployement ${error.message}`,
+    });
+  }
+};
+
+export const getBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const website = await Website.findOne({
+      slug,
+      deployed: true,
+    });
+
+    if (!website) {
+      return res.status(404).json({ message: 'Website not found' });
+    }
+
+    return res.status(200).json(website);
   } catch (error) {
     return res
       .status(500)
