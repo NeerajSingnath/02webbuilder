@@ -23,9 +23,10 @@ const isAuth = async (req, res, next) => {
       console.log('user not found');
       return res.status(401).json({ user: null });
     }
-
+    // console.log(user);
     // attach user to request
     req.user = user;
+    req.userId = user._id;
 
     // call next middleware
     next();

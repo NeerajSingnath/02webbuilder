@@ -9,7 +9,7 @@ export const billing = async (req, res) => {
     const plan = PLANS[planType];
 
     if (!plan || plan.price == 0) {
-      return res.staus(400).json({ message: 'invalid paid plan' });
+      return res.status(400).json({ message: 'invalid paid plan' });
     }
 
     const session = await stripe.checkout.sessions.create({

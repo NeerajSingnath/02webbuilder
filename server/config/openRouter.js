@@ -1,9 +1,27 @@
 const openRouterUrl = 'https://openrouter.ai/api/v1/chat/completions';
 
-const MODEL = 'openrouter/owl-alpha';
-console.log(process.env.OPENROUTER_API_KEY);
+const MODEL = 'nvidia/nemotron-3-ultra-550b-a55b:free';
 
 export const generateResponse = async (prompt) => {
+  // const result = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  //   method: 'POST',
+  //   headers: {
+  //     Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+  //     'Content-Type': 'application/json',
+  //   },
+  //   body: JSON.stringify({
+  //     model: MODEL,
+  //     messages: [
+  //       {
+  //         role: 'user',
+  //         content: 'What is the meaning of life?',
+  //       },
+  //     ],
+  //   }),
+  // });
+  // console.log(result);
+  const text = await result.text();
+  console.log(text);
   const res = await fetch(openRouterUrl, {
     method: 'POST',
     headers: {

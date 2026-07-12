@@ -160,9 +160,11 @@ export const generateWebsite = async (req, res) => {
     if (!prompt) {
       return res.status(400).json({ message: 'Prompt is required' });
     }
+    console.log(prompt);
     // getting user id
-    const userId = req.user.id;
-    const user = await User.findById(userId);
+    const userId = req.userId;
+    // console.log(userId.toString());
+    const user = await User.findById(userId.toString());
 
     // checking if user is valid and has enough credits
     if (!user) {
@@ -183,6 +185,7 @@ export const generateWebsite = async (req, res) => {
     // retry logic to extract json
     let currentPrompt = finalPrompt;
     for (let i = 0; i < 3 && !parsed; i++) {
+      console.log('here11');
       raw = await generateResponse(currentPrompt);
       parsed = await extractJson(raw);
 
@@ -194,6 +197,7 @@ export const generateWebsite = async (req, res) => {
 
     // checking if response is valid json
     const { code, message } = parsed;
+    console.log(code, message);
 
     // checking if response is valid json
     if (!code || !message) {
@@ -344,6 +348,12 @@ RETURN RAW JSON ONLY:
         currentPrompt =
           updatedPrompt + '\n\nPlease provide the response in JSON format only';
       }
+    }
+
+    if (!parsed || !parsed.code || !parsed.message) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid response from AI model' });
     }
 
     website.conversation.push(

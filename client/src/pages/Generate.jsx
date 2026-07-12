@@ -2,10 +2,13 @@ import axios from 'axios';
 import { ArrowLeft } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { serverUrl } from '../App';
+import { updateCredits } from '../redux/userSlice';
 
 const Generate = () => {
+  const dispatch = useDispatch();
   const PHASES = [
     'Analyzing your idea…',
     'Designing layout & structure…',
@@ -32,6 +35,7 @@ const Generate = () => {
         { withCredentials: true },
       );
       setProgress(100);
+      dispatch(updateCredits(result.data.remainingCredits));
       navigate('/editor/' + result.data.websiteId);
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to generate website');

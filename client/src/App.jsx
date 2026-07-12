@@ -9,6 +9,7 @@ import LiveSite from './pages/LiveSite';
 import PaymentFailed from './pages/PaymentFailed';
 import PaymentSuccess from './pages/PaymentSuccess';
 import Pricing from './pages/Pricing';
+import { Toaster } from 'sonner';
 export const serverUrl = 'http://localhost:3000';
 
 const App = () => {
@@ -16,6 +17,7 @@ const App = () => {
   const { userData } = useSelector((state) => state.user);
   return (
     <BrowserRouter>
+      <Toaster position="top-right" theme="dark" richColors />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route

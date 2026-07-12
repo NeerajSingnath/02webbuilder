@@ -11,9 +11,12 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { serverUrl } from '../App';
+import { updateCredits } from '../redux/userSlice';
 function Editor_() {
+  const dispatch = useDispatch();
   const { id } = useParams();
   const [website, setWebsite] = useState(null);
   const [error, setError] = useState('');
@@ -47,7 +50,11 @@ function Editor_() {
           withCredentials: true,
         },
       );
-      setWebsite((prev) => ({ ...prev, deployed: true }));
+      setWebsite((prev) => ({
+        ...prev,
+        deployed: true,
+        deployUrl: result.data.url,
+      }));
       console.log(website);
       window.open(`${result.data.url}`, '_blank');
     } catch (error) {
@@ -68,6 +75,7 @@ function Editor_() {
       );
       console.log(result.data.message);
       setUpdateLoading(false);
+      dispatch(updateCredits(result.data.remainingCredits));
       setMessages((m) => [...m, { role: 'ai', content: result.data.message }]);
       setCode(result.data.code);
     } catch (error) {
